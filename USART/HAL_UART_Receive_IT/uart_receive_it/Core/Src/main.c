@@ -93,7 +93,7 @@ int main(void)
     MX_GPIO_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
-    // 以中断方式进行接收，只需要启动一次
+    // 以中断方式进行接收，只需要启动一次，满10个字节进入中断
     HAL_UART_Receive_IT(&huart1, buffer, 10);
     /* USER CODE END 2 */
 
@@ -106,6 +106,8 @@ int main(void)
             // 定长数据收发
             HAL_UART_Transmit(&huart1, buffer, 10, 1000);
             is_over = 0;
+            // 重新启动下一轮10字节接收
+            HAL_UART_Receive_IT(&huart1, buffer, 10);
         }
         /* USER CODE END WHILE */
 
@@ -211,7 +213,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+// 串口接收完成回调
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1)
+    {
+        is_over = 1;
+    }
+}
 /* USER CODE END 4 */
 
 /**
